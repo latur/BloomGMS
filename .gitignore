@@ -1,5 +1,4 @@
 build
 dist
-Make_GMS.egg-info
-makegms.egg-info
-
+bloomgms.egg-info
+.DS_Store

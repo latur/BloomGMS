@@ -6,7 +6,7 @@
 #define num unsigned long long int
 
 #include "_reader.c"
-#include "_mumur.c"
+#include "_hasher.c"
 #include "_filter.c"
 
 int main(int argc, char *argv[])
