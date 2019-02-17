@@ -56,9 +56,3 @@ Genome * genome_read(char * src, unsigned read_length)
 
     return seq;
 }
-
-void genome_clear(Genome * seq)
-{
-    free(seq->sequence);
-    free(seq);
-}

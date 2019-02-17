@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <inttypes.h>
 
+#define BYTE 8
 #define num unsigned long long int
 
 #include "_reader.c"
-#include "_hasher.c"
 #include "_filter.c"
 
 int main(int argc, char *argv[])
@@ -14,7 +15,7 @@ int main(int argc, char *argv[])
     unsigned read_length = 100;
     if (argc > 2) read_length = atoi(argv[2]);
 
-    unsigned quality = 12;
+    unsigned quality = 5;
     if (argc > 3) quality = atoi(argv[3]);
 
     Genome * seq = genome_read(argv[1], read_length);
@@ -24,24 +25,27 @@ int main(int argc, char *argv[])
         bloom_insert(bloom, seq, i);
     }
 
+    free(seq->sequence);
+    free(bloom->first);
+
     /* --------------------------------------------------------------------- */
 
     num blocks = (num)( ceil(seq->reads/8) );
     unsigned char * gms = (unsigned char *) malloc(sizeof(unsigned char) * blocks);
-    memset(gms, 0, sizeof(unsigned char) * blocks);
+    unsigned char current_byte = 0;
+    num bytes_counter = 0;
 
     for (num k = 0; k != seq->reads; ++k) {
-        // printf("%i", bloom_exist(bloom, seq, k) ? 0 : 1);
-        if (!bloom_exist(bloom, seq, k)) setbit(gms, k);
+        // if (bloom_exist(bloom, seq, k) > 0) printf("0"); else printf("1");
+        current_byte += pow(2,7-k%8) * (bloom_exist(bloom, seq, k) > 0 ? 0 : 1);
+        if (k%8 == 7) {
+            *(gms + bytes_counter) = current_byte;
+            current_byte = 0;
+            bytes_counter++;
+        }
     }
-    
-    // В фильтре обратный порядок бит. Нужно развернуть
-    // Генри Уоррен  "Алгоритмические трюки для программистов"
-    for (char v = 0; v != blocks; ++v) {
-        gms[v] = (gms[v] & 0x55) << 1 | (gms[v] & 0xAA) >> 1;
-        gms[v] = (gms[v] & 0x33) << 2 | (gms[v] & 0xCC) >> 2;
-        gms[v] = (gms[v] & 0x0F) << 4 | (gms[v] & 0xF0) >> 4;
-    }
+    if (seq->reads%8 != 0)
+        *(gms + bytes_counter) = current_byte;
 
     FILE * pFile = fopen ("./track.bin", "wb");
     fwrite (gms , sizeof(unsigned char), blocks, pFile);
@@ -51,8 +55,12 @@ int main(int argc, char *argv[])
 
     /* --------------------------------------------------------------------- */
 
-    genome_clear(seq);
-    bloom_clear(bloom);
+    free(seq);
+
+    free(bloom->hashes);
+    free(bloom->second);
+    free(bloom);
+
     return 0;
 }
 

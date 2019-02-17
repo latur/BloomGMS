@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 
 setup(
     name = 'bloomgms',
-    version = '1.0.0',
+    version = '1.0.1',
     description = 'Genome mappability estimation using Bloom Filter',
     url = "https://github.com/latur/BloomGMS",
     author = 'Igor V.',
@@ -11,7 +11,7 @@ setup(
       'bloomgms', 
       ['src/bloomgms.c'], 
       include_dirs = ['src'],
-      extra_compile_args=['-std=c99', '-m64', '-O']
+      extra_compile_args=['-std=c99', '-m64', '-O3']
     )],
     py_modules = ['bloomgms']
 )
