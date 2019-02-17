@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #define BYTE 8
 #define num unsigned long long int
@@ -63,11 +63,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-/*
- Build:
- gcc ./src/main.c -o ./dist/exec
-
- valgrind --leak-check=full --show-leak-kinds=all \
-  ./dist/exec ./example.fa 15
- */
