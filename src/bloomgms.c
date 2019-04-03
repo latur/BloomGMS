@@ -29,7 +29,6 @@ run_bloomgms(PyObject *self, PyObject *args, PyObject *keywds)
         bloom_insert(bloom, seq, i);
     }
 
-    free(seq->sequence);
     free(bloom->first);
 
     PyObject *l = PyList_New(seq->reads);
@@ -37,6 +36,7 @@ run_bloomgms(PyObject *self, PyObject *args, PyObject *keywds)
         PyList_SetItem(l, k, Py_BuildValue("h", bloom_exist(bloom, seq, k) ? 0 : 1));
     }
 
+    free(seq->sequence);
     free(seq);
 
     free(bloom->hashes);

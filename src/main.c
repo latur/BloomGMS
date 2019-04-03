@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
         bloom_insert(bloom, seq, i);
     }
 
-    free(seq->sequence);
     free(bloom->first);
 
     /* --------------------------------------------------------------------- */
@@ -55,6 +54,7 @@ int main(int argc, char *argv[])
 
     /* --------------------------------------------------------------------- */
 
+    free(seq->sequence);
     free(seq);
 
     free(bloom->hashes);
