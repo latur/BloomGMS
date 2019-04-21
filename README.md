@@ -6,21 +6,41 @@
 pip3 install --user git+https://github.com/latur/BloomGMS
 ```
 
-## Usage:
+## Usage in python:
 
 ```python
 import bloomgms
-track = bloomgms.make('./human.fa', read=100, quality=12)
+track = bloomgms.make('human.fasta', read=100, quality=6)
 # Output: track = [0,0,0,0,1,1,1,0,0,0,0,0,1,1,1, ...]
 ```
 
-`./human.fa` — Is the path to the file with the fasta format genome  
+`human.fa` — Path to the file with the genome (fasta)  
 `read=10` — Read size  
-`quality=12` — Constant for used memory. For example, if 12 is specified, then 12 x (genome size) memory will be used for the Bloom filter.
+`quality=6` — Constant for [memory usage](#about-the-quality-parameter)
 
-## Description of Genome Mappability Score (GMS)
 
-For a given **genome** and **read size**, the `bloomgms` module creates a binary track, where 0 corresponds to the index of the repeating read in the genome, and 1 to the index of the unique read. A read is considered repetitive if he or he is reverse complementary read is found in the genome more than once.
+## Compile as an independent application:
+
+```bash
+git clone https://github.com/latur/BloomGMS.git
+cd BloomGMS && mkdir build
+gcc src/main.c -std=c99 -m64 -O3 -o build/bloomgms
+```
+
+## Usage:
+
+```bash
+# ./build/bloomgms [fasta file] [read length] [quality: 3 - 8]
+./build/bloomgms test.fa 5 4
+# The result will be saved in -> track.bin
+```
+
+
+## Algorithm Description:
+
+For a given **genome** (size `G` b.p.) and a given **read size** `L`, we make two passes with a sliding window of size `L` with a step of `1`.  
+– The first passage through the genome breaks the genome into reads (`G - L + 1` items). Each of these reads is placed in the Bloom Filter.  
+– The second passage through the genome with the same sliding window checks the existence of each read in the Bloom Filter more than 2 times. A binary track is formed based on this, where `0` corresponds to repeating reads, and `1` to unique reads.
 
 For example, let the genome be the string `AAAAAATGCA` and the length of the read `4`
 
@@ -57,3 +77,16 @@ GCGGAAGGTAAA
 >>> ('').join(map(str, track))
 '00111111111111000000000111111111111100111111'
 ```
+
+## About the quality parameter
+
+To work, you need to allocate memory for two Bloom filters. The number of hash functions of the filter is determined in the optimal way to reduce the likelihood of a collision. Below is a table of memory requirements and the corresponding probability of a false definition of a unique read as repeated. `GS` is Genome Size in bytes
+
+| Quality | Memory  | Hashes | False Positive |
+| ------- | ------- | ------ | -------------- |
+| 3       | 5 × GS  | 8      | 3.1423 * 10^-3 |
+| 4       | 6 × GS  | 11     | 4.5869 * 10^-4 |
+| 5       | 7 × GS  | 14     | 6.7134 * 10^-5 |
+| 6       | 8 × GS  | 17     | 9.8393 * 10^-6 |
+| 7       | 9 × GS  | 19     | 1.4400 * 10^-6 |
+| 8       | 10 × GS | 22     | 2.1044 * 10^-7 |
