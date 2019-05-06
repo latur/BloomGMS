@@ -4,8 +4,12 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "pthread.h"
+
 #define BYTE 8
 #define num unsigned long long int
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #include "_reader.c"
 #include "_filter.c"
@@ -35,7 +39,6 @@ int main(int argc, char *argv[])
     num bytes_counter = 0;
 
     for (num k = 0; k != seq->reads; ++k) {
-        // if (bloom_exist(bloom, seq, k) > 0) printf("0"); else printf("1");
         current_byte += pow(2,7-k%8) * (bloom_exist(bloom, seq, k) > 0 ? 0 : 1);
         if (k%8 == 7) {
             *(gms + bytes_counter) = current_byte;
