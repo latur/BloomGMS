@@ -1,66 +1,30 @@
-typedef struct {
-    num length;
-    char * second;
-    char * first;
-    unsigned hash_count;
-    num * hashes;
-} Filter;
-
-typedef struct {
-	char * key;
-	unsigned len;
-	unsigned seed;
-	num hash;
-} ThreadData;
-
-void setbit(void * field, num index)
+void setbit(void * field, big index)
 {
     char * byte = NULL;
-    byte = (char *) field + index / BYTE;
-    *byte = *byte | (1 << (index % BYTE));
+    byte = (char *) field + index / 8;
+    *byte = *byte | (1 << (index % 8));
 }
 
-unsigned checkbit(const void * field, num index)
+unsigned checkbit(const void * field, big index)
 {
     char * byte = NULL;
-    byte = (char *) field + index / BYTE;
-    return (*byte >> (index % BYTE)) & 1;
+    byte = (char *) field + index / 8;
+    return (*byte >> (index % 8)) & 1;
 }
 
-void make_hashes(Filter * bloom, const Genome * seq, const num i)
+void make_hashes(Filter * bloom, const Genome * seq, const big i)
 {
-	/*
-	unsigned threads = bloom->hash_count;
-
-    pthread_t * thread = (pthread_t*) malloc(threads * sizeof(pthread_t));
-	ThreadData * parts = (ThreadData*) malloc(threads * sizeof(ThreadData));
-
-    for (unsigned t = 0; t < threads; t++){
-        parts[t].key = &seq->sequence[i];
-        parts[t].len = seq->read_length;
-		parts[t].seed = t;
-        parts[t].hash = 0;
-        pthread_create( &(thread[t]), NULL, hasher, &parts[t]);
-    }
-
-    for (unsigned t = 0; t < threads; t++){
-        pthread_join(thread[t], NULL);
-		bloom->hashes[t] = parts[t].hash % (bloom->length * BYTE);
-    }
-
-    free(parts);
-    free(thread);
-	*/
-
+    extern unsigned read_length;
+	
 	// MurmurHash64A
     const uint64_t m = 0xc6a4a7935bd1e995;
     const int r = 47;
 
     const uint64_t * data = (const uint64_t *) &seq->sequence[i];
-    const uint64_t * end = data + (seq->read_length/8);
+    const uint64_t * end = data + (read_length/8);
 
     for (unsigned seed = 0; seed < bloom->hash_count; seed++) {
-	    bloom->hashes[seed] = (uint64_t) seed ^ (seq->read_length * m);
+	    bloom->hashes[seed] = (uint64_t) seed ^ (read_length * m);
 	}
 
     while(data != end)
@@ -79,7 +43,7 @@ void make_hashes(Filter * bloom, const Genome * seq, const num i)
     const unsigned char * data2 = (const unsigned char*) data;
 
     for (unsigned seed = 0; seed < bloom->hash_count; seed++) {
-	    switch(seq->read_length & 7)
+	    switch(read_length & 7)
 	    {
 	        case 7: bloom->hashes[seed] ^= (uint64_t) data2[6] << 48;
 	        case 6: bloom->hashes[seed] ^= (uint64_t) data2[5] << 40;
@@ -94,7 +58,7 @@ void make_hashes(Filter * bloom, const Genome * seq, const num i)
 	    bloom->hashes[seed] ^= bloom->hashes[seed] >> r;
 	    bloom->hashes[seed] *= m;
 	    bloom->hashes[seed] ^= bloom->hashes[seed] >> r;
-		bloom->hashes[seed] = bloom->hashes[seed] % (bloom->length * BYTE); 
+		bloom->hashes[seed] = bloom->hashes[seed] % (bloom->length * 8); 
     }
 }
 
@@ -111,7 +75,7 @@ unsigned bloom_exist(Filter * bloom, const Genome * seq, const num i)
     return exist;
 }
 
-void bloom_insert(Filter * bloom, Genome * seq, num i)
+void bloom_insert(Filter * bloom, Genome * seq, big i)
 {
     make_hashes(bloom, seq, i);
 
@@ -127,21 +91,4 @@ void bloom_insert(Filter * bloom, Genome * seq, num i)
             setbit(bloom->second, bloom->hashes[h]);
         }
     }
-}
-
-
-Filter * bloom_init(num genome_size, unsigned quality)
-{
-    Filter * bloom = (Filter *) malloc(sizeof(Filter));
-
-    bloom->hash_count = round(2.77259 * quality); // Log[2] * 4 = 2.77259
-    bloom->hashes = (num *) malloc(sizeof(num) * bloom->hash_count);
-
-    bloom->length = genome_size * quality;
-    bloom->first = malloc(bloom->length);
-    bloom->second = malloc(bloom->length);
-
-    memset(bloom->first, 0, bloom->length);
-    memset(bloom->second, 0, bloom->length);
-    return bloom;
 }

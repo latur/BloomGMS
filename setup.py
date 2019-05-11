@@ -1,21 +1,21 @@
 from setuptools import setup, Extension
 
 setup(
-    name = 'bloomgms',
-    version = '1.0.2',
-    description = 'Genome mappability estimation using Bloom Filter',
-    url = "https://github.com/latur/BloomGMS",
+    name = 'makegms',
+    version = '3.0.0',
+    description = 'Fast and easy tool for genome mappability estimation',
+    url = "https://github.com/latur/Makegms",
     author = 'Igor V.',
     author_email = 'latur@me.com',
     ext_modules = [Extension(
-      'bloomgms', 
-      ['src/bloomgms.c'], 
+      'makegms', 
+      ['src/makegms.c'], 
       include_dirs = ['src'],
-      extra_compile_args=['-std=c99', '-m64', '-O3']
+      extra_compile_args=['-std=c99', '-m64', '-O3', '-lpthread', '-lm']
     )],
-    py_modules = ['bloomgms']
+    py_modules = ['makegms']
 )
 
-# rm -rf bloomgms* dist build
+# rm -rf makegms* dist build
 # python3 setup.py build
 # python3 setup.py install

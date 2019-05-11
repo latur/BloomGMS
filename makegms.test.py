@@ -2,7 +2,7 @@
 import sys
 import os
 
-import bloomgms
+import makegms
 import numpy as np
 
 
@@ -10,7 +10,7 @@ class Test():
     def __init__(self, desc, seq, read=10):
         sys.stdout.write("\033[32m- {0}\033[0m".format(desc))
         self.write(seq)
-        track = bloomgms.make(self.fp.name, read=read, quality=3)
+        track = makegms.run(self.fp.name, read=read, quality=4)
         self.validate(track, seq, read)
         os.remove(self.fp.name)
 

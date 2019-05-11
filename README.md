@@ -1,9 +1,9 @@
-# Bloom GMS-Maker
+# Make GMS
 
 ## Installation:
 
 ```bash
-pip3 install --user git+https://github.com/latur/BloomGMS
+pip3 install --user git+https://github.com/latur/MakeGMS
 ```
 
 ## Usage in python:
