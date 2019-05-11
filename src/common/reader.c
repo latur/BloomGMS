@@ -11,7 +11,13 @@ Genome * reader(char * src)
 {
     Genome * seq = NULL;
 	
-	big file_size = fileSize(src);
+    FILE * f = fopen(src, "r");
+	if (f == NULL) {
+		printf("File not found: %s\n", src);
+		exit(EXIT_FAILURE);
+	}
+    fseek(f, 0, SEEK_END);
+    big file_size = (big) ftell(f);
 
     seq = (Genome *) malloc(sizeof(Genome));
     seq->sequence = (char *) malloc(sizeof(char) * file_size * 2);
@@ -20,7 +26,7 @@ Genome * reader(char * src)
     char state = 'N';
     big i = 0;
 
-    FILE * f = fopen(src, "r");
+    fseek(f, 0, SEEK_SET);
     while ((ch = fgetc(f)) != EOF) {
         if (state == 'N' && ch == '>') {
             state = 'T'; // is title

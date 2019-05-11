@@ -9,7 +9,6 @@
 #include "pthread.h"
 
 #include "common/types.c"
-#include "common/file_size.c"
 #include "common/reader.c"
 
 #include "bloom/filter_helpers.c"
@@ -25,21 +24,20 @@ static PyObject * run(PyObject *self, PyObject *args, PyObject *keywds)
 {
     char * src;
 
-    unsigned threads = 1;
+    unsigned threads = 0;
     unsigned quality = 0;
     
     static char * kwlist[] = {"src", "read", "threads", "quality", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|iii", kwlist,
                                      &src, &read_length, &threads, &threads)) 
 										 return NULL;
-
     /* --------------------------------------------------------------------- */
 
 	makeGmsWrapper(src, threads, quality);
 
-    PyObject *l = PyList_New(seq->size);
+    PyObject *l = PyList_New(seq->reads);
     for (big k = 0; k != seq->reads; ++k) {
-        PyList_SetItem(l, i, Py_BuildValue("h", seq->counts[i] > 1 ? 0 : 1));
+        PyList_SetItem(l, k, Py_BuildValue("h", seq->counts[k] > 1 ? 0 : 1));
     }
 
     /* --------------------------------------------------------------------- */

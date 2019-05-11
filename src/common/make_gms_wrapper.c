@@ -4,8 +4,6 @@
 
 void makeGmsWrapper(char * src, unsigned threads, unsigned quality)
 {
-    big file_size = fileSize(src);
-
     extern Genome * seq;
     extern unsigned read_length;
 	extern unsigned large_genome;

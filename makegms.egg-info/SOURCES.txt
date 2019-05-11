@@ -1,0 +1,9 @@
+MANIFEST.in
+README.md
+setup.py
+makegms.egg-info/PKG-INFO
+makegms.egg-info/SOURCES.txt
+makegms.egg-info/dependency_links.txt
+makegms.egg-info/top_level.txt
+src/main.c
+src/makegms.c

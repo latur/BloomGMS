@@ -1,47 +1,8 @@
-# Make GMS
+# MakeGMS
 
-## Installation:
+For a given **genome** and **read size**, the `makegms` module creates a binary track, where 0 corresponds to the index of the repeating read in the genome, and 1 to the index of the unique read. A reed is considered repetitive if it is found more than once in the genome (including reverse complementary).
 
-```bash
-pip3 install --user git+https://github.com/latur/MakeGMS
-```
-
-## Usage in python:
-
-```python
-import bloomgms
-track = bloomgms.make('human.fasta', read=100, quality=6)
-```
-
-`human.fa` — Path to the file with the genome (fasta)  
-`read=10` — Read size  
-`quality=6` — Constant for [memory usage](#quality-parameter)
-
-Output: `track = [0,0,0,0,1,1,1,0,0,0,0,0,1,1,1, ...]`
-
-
-## Compile as an independent application:
-
-```bash
-git clone https://github.com/latur/BloomGMS.git
-cd BloomGMS && mkdir build
-gcc src/main.c -std=c99 -m64 -O3 -o build/bloomgms
-```
-
-## Usage:
-
-```bash
-./build/bloomgms [fasta file] [read length] [quality: 3 - 8]
-./build/bloomgms test.fa 5 4
-```
-
-Result will be saved to `track.bin`
-
-## Algorithm Description:
-
-For a given **genome** (size `G` b.p.) and a given **read size** `L`, we make two passes with a sliding window of size `L` with a step of `1`. The first passage through the genome breaks the genome into reads (`G - L + 1` items). Each of these reads is placed in the Bloom Filter. The second passage through the genome with the same sliding window checks the existence of each read in the Bloom Filter more than 2 times. A binary track is formed based on this, where `0` corresponds to repeating reads, and `1` to unique reads.
-
-For example, let the genome be the string `AAAAAATGCA` and the length of the read `4`
+For example, let the genome be the string `AAAAAATGCA` and the length of the read is `4`
 
 ```
 gms(AAAAAATGCA, 4) = 0001100
@@ -57,27 +18,58 @@ AAAA                 x 3 -> 0
       TGCA           x 2 -> 0
 ```
 
-If there are several chromosomes or scaffolds in a fasta file, they will be combined into one common genome. For example, for the file `example.fa`:
+## Installation:
 
-```fasta
->NC_011750.1:1-999
-TTccgcccAaGGCGTTTT
-
->NC_011750.2:1-999
-AAAAAAAAAGTCATGGTT
-
->NC_011750.3:1-999
-GCGGAAGGTAAA
+```bash
+pip3 install --user git+https://github.com/latur/MakeGMS
 ```
+
+## Usage examples:
+
+To run with the default parameters, you only need to specify the size of the read. In this case, the optimal track building algorithm will be selected, depending on the genome size:
 
 ```python
->>> import bloomgms
->>> track = bloomgms.make('./example.fa', read=5)
+>>> import makegms
+>>> track = makegms.run('example.fa', read=15)
 >>> ('').join(map(str, track))
-'00111111111111000000000111111111111100111111'
+'00111111111111000000000111111111111100111111...'
 ```
 
-## Quality parameter
+To indicate that you want to use QSort based algorithm exactly, pass the number of **threads** as an argument. It makes sense when `threads > 1`. However, if you specify here a number greater than the number of processors you have, performance will decrease:
+
+```python
+>>> track = makegms.run('example.fa', read=15, threads=2)
+```
+
+To use the algorithm on the filters, specify the quality of the hash function. [The quality](#quality-parameter) is related to the probability of a collision and the amount of RAM consumed:
+
+```python
+>>> track = makegms.run('example.fa', read=15, quality=4)
+```
+
+## Algorithm Description:
+
+### QSort-based method:
+
+1. Sorting reads. Used QuickSort
+2. Сomparison of current and next read (In the sort order)
+ - If the reads match, then increase the value of the repeat counter.
+ - If the reads do not match, save counter value for previous read and reset the counter for current read
+
+Multithreading is provided by dividing all reads into disjoint blocks using the hash function:  
+`block_number = Hash(read) % blocks_count`
+
+### Bloom-based method:
+
+1. Creating two Bloom-filters of the same size: `F1`, `F2`
+2. The first round of all reads in the genome:
+ - For each read in the genome — add it to filter `F1` and if the read already exists in filter `F1` then add it to filter `F2`
+3. The second round of all reads in the genome:
+ - Form a binary sequence: each read that is in filter `F2` corresponds to `0`, otherwise `1`
+
+Filter size is determined based on the quality parameter. 
+
+### Quality parameter
 
 To work, you need to allocate memory for two Bloom filters. The number of hash functions of the filter is determined in the optimal way to reduce the likelihood of a collision. Below is a table of memory requirements and the corresponding probability of a false definition of a unique read as repeated. `GS` is Genome Size in bytes
 

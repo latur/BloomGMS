@@ -7,7 +7,6 @@
 #include "pthread.h"
 
 #include "common/types.c"
-#include "common/file_size.c"
 #include "common/reader.c"
 
 #include "bloom/filter_helpers.c"
@@ -55,7 +54,7 @@ int main(int argc, char *argv[])
 
 /*
  Helpers:
- gcc src/main.c -std=c99 -m64 -O3 -lpthread -o exec 
+ gcc src/main.c -std=c99 -m64 -O3 -lpthread -lm -o exec 
 
  Debug:
  valgrind --leak-check=full --show-leak-kinds=all \
