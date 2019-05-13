@@ -17,25 +17,20 @@ void makeGmsWrapper(char * src, unsigned threads, unsigned quality)
 	if (seq->length > 2147483647) large_genome = 1;
 
     if (threads == 0 && quality > 0) {
-	    // printf("-> makeGmsBloom\n");
 		makeGmsBloom(quality);
 	
 	} else if (quality == 0 && threads > 0) {
-	    // printf("-> makeGmsQsort\n");
 		makeGmsQsort(threads);
 	
 	} else {
         if (large_genome) {
-		    // printf("-> makeGmsBloom\n");
 			makeGmsBloom(quality);
 
         } else {
 			if (threads > 1 || quality > 5) {
-			    // printf("-> makeGmsQsort\n");
 				makeGmsQsort(threads);
 
 			} else {
-			    // printf("-> makeGmsBloom\n");
 				makeGmsBloom(quality);
 			}
         }

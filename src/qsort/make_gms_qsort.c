@@ -1,5 +1,7 @@
 void makeGmsQsort(unsigned threads)
 {
+    printf("\033[32m[+] Using an approach based on QuickSort\033[0m\n");
+
     extern Genome * seq;
     extern unsigned read_length;
 	extern unsigned large_genome;

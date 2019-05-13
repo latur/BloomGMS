@@ -1,5 +1,7 @@
 void makeGmsBloom(unsigned quality)
 {
+    printf("\033[32m[+] Using a BloomFilter-based approach\033[0m\n");
+
     extern Genome * seq;
     extern unsigned read_length;
 
