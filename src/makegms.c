@@ -29,7 +29,7 @@ static PyObject * run(PyObject *self, PyObject *args, PyObject *keywds)
     
     static char * kwlist[] = {"src", "read", "threads", "quality", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|iii", kwlist,
-                                     &src, &read_length, &threads, &threads)) 
+                                     &src, &read_length, &threads, &quality)) 
 										 return NULL;
     /* --------------------------------------------------------------------- */
 
